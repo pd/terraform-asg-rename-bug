@@ -72,3 +72,27 @@ $ aws autoscaling describe-tags --filters Name=auto-scaling-group,Values=asg-ren
     ]
 }
 ```
+
+## step 2, ref `rename`
+
+We want to run multiple copies of the ASG, maybe one for a test environment, one
+for production, but the name is too generic. We add a variable `env` and embed it
+in the ASG name to disambiguate. Unfortunately, ASGs can not be directly renamed,
+and we don't want to destroy and recreate the existing one, so we configure the
+resource's lifecycle to ignore changes to `name`. This works as expected -- there
+are no changes when applied to the existing tfstate:
+
+```
+$ terraform plan -var env=test
+Refreshing Terraform state in-memory prior to plan...
+The refreshed state will be used to calculate this plan, but
+will not be persisted to local or remote state storage.
+
+aws_launch_configuration.lc: Refreshing state... (ID: asg-rename-bug-poc-00d6ed0a44a26ce4a3fc27f416)
+aws_autoscaling_group.asg: Refreshing state... (ID: asg-rename-bug)
+
+No changes. Infrastructure is up-to-date. This means that Terraform
+could not detect any differences between your configuration and
+the real physical resources that exist. As a result, Terraform
+doesn't need to do anything.
+```
