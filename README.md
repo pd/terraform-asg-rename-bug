@@ -96,3 +96,66 @@ could not detect any differences between your configuration and
 the real physical resources that exist. As a result, Terraform
 doesn't need to do anything.
 ```
+
+## step 3, ref `tag`
+
+Modify the tags on the ASG. In this case, we add a tag to store the environment.
+
+```
+$ terraform plan -var env=test
+~ aws_autoscaling_group.asg
+    tag.#:                            "1" => "2"
+    tag.20478519.key:                 "" => "env"
+    tag.20478519.propagate_at_launch: "" => "true"
+    tag.20478519.value:               "" => "test"
+
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+```
+
+It's not immediately obvious, but this plan actually shows that the existing
+tag will be removed, and the new one added, despite the `tag.#` value.
+`apply` and look at the ASG tags again:
+
+```
+$ terraform apply -var env=test
+aws_launch_configuration.lc: Refreshing state... (ID: asg-rename-bug-poc-00d6ed0a44a26ce4a3fc27f416)
+aws_autoscaling_group.asg: Refreshing state... (ID: asg-rename-bug)
+aws_autoscaling_group.asg: Modifying...
+  tag.#:                            "1" => "2"
+  tag.20478519.key:                 "" => "env"
+  tag.20478519.propagate_at_launch: "" => "true"
+  tag.20478519.value:               "" => "test"
+aws_autoscaling_group.asg: Modifications complete
+
+Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
+
+$ aws autoscaling describe-tags --filters Name=auto-scaling-group,Values=asg-rename-bug
+{
+    "Tags": [
+        {
+            "ResourceType": "auto-scaling-group",
+            "ResourceId": "asg-rename-bug",
+            "PropagateAtLaunch": true,
+            "Value": "test",
+            "Key": "env"
+        }
+    ]
+}
+```
+
+The `original` tag is gone. Re-plan:
+
+```
+$ terraform plan -var env=test
+~ aws_autoscaling_group.asg
+    tag.#:                              "1" => "2"
+    tag.4080504499.key:                 "" => "original"
+    tag.4080504499.propagate_at_launch: "" => "true"
+    tag.4080504499.value:               "" => "tag-value"
+
+
+Plan: 0 to add, 1 to change, 0 to destroy.
+```
+
+This cycle will now repeat forever, just swapping the tags out for each other.

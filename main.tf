@@ -28,4 +28,10 @@ resource "aws_autoscaling_group" "asg" {
     value               = "tag-value"
     propagate_at_launch = true
   }
+
+  tag {
+    key                 = "env"
+    value               = "${var.env}"
+    propagate_at_launch = true
+  }
 }
