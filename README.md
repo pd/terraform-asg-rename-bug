@@ -12,6 +12,8 @@ below.
 
 ## step 1, ref `initial`
 
+[main.tf@initial](https://github.com/pd/terraform-asg-rename-bug/blob/initial/main.tf)
+
 terraform will create a single AWS autoscaling group, named `asg-rename-bug`
 (with size zero, so you will not have to pay for actual instances):
 
@@ -75,6 +77,8 @@ $ aws autoscaling describe-tags --filters Name=auto-scaling-group,Values=asg-ren
 
 ## step 2, ref `rename`
 
+[main.tf@rename](https://github.com/pd/terraform-asg-rename-bug/blob/rename/main.tf)
+
 We want to run multiple copies of the ASG, maybe one for a test environment, one
 for production, but the name is too generic. We add a variable `env` and embed it
 in the ASG name to disambiguate. Unfortunately, ASGs can not be directly renamed,
@@ -98,6 +102,8 @@ doesn't need to do anything.
 ```
 
 ## step 3, ref `tag`
+
+[main.tf@tag](https://github.com/pd/terraform-asg-rename-bug/blob/tag/main.tf)
 
 Modify the tags on the ASG. In this case, we add a tag to store the environment.
 
