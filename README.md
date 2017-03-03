@@ -3,7 +3,7 @@ repeatedly clobber existing tag values.
 
 ```
 $ terraform version
-Terraform v0.8.7
+Terraform v0.8.8
 ```
 
 Ensure AWS credentials are available to terraform (ie, set `$AWS_PROFILE`),
